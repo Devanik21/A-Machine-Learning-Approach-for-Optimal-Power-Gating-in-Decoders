@@ -53,7 +53,7 @@ st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/000000/processor.png", width=80)
+    #st.image("https://img.icons8.com/fluency/96/000000/processor.png", width=80)
     st.title("⚙️ Configuration Panel")
     
     st.markdown("### 📂 Dataset")
@@ -82,7 +82,7 @@ with st.sidebar:
 def load_decoder_data():
     try:
         # Load from GitHub - UPDATE THIS URL WITH YOUR GITHUB INFO
-        url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/decoder_power_delay_area_dataset.csv"
+        url = "https://github.com/Devanik21/A-Machine-Learning-Approach-for-Optimal-Power-Gating-in-Decoders/blob/main/decoder_power_delay_area_dataset.csv"
         df = pd.read_csv(url)
         return df
     except Exception as e:

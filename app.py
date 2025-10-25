@@ -310,26 +310,71 @@ with tab2:
     
     target_col = target_map[optimization_target]
     
+    # Filter dataset based on sidebar parameters
+    filtered_df = df.copy()
+    
+    # Apply filters with tolerance
+    voltage_tolerance = 0.2
+    filtered_df = filtered_df[
+        (filtered_df['decoder_size'] == decoder_bits) &
+        (filtered_df['tech_node'] == technology_node) &
+        (filtered_df['supply_voltage'] >= supply_voltage - voltage_tolerance) &
+        (filtered_df['supply_voltage'] <= supply_voltage + voltage_tolerance)
+    ]
+    
+    # Check if filtered dataset has enough samples
+    if len(filtered_df) < 50:
+        st.warning(f"⚠️ Only {len(filtered_df)} samples match your exact parameters. Using full dataset with emphasis on your configuration.")
+        filtered_df = df.copy()
+        # Add weight column to emphasize matching samples
+        filtered_df['weight'] = 1.0
+        mask = (
+            (filtered_df['decoder_size'] == decoder_bits) &
+            (filtered_df['tech_node'] == technology_node)
+        )
+        filtered_df.loc[mask, 'weight'] = 3.0  # Give 3x weight to matching samples
+    else:
+        st.success(f"✅ Found {len(filtered_df)} samples matching your configuration!")
+        filtered_df['weight'] = 1.0
+    
     # Prepare data
     feature_cols = ['decoder_size', 'tech_node', 'supply_voltage', 'threshold_voltage',
                    'transistor_width', 'load_capacitance', 'pg_efficiency',
                    'switching_activity', 'leakage_factor', 'temperature']
     
-    X = df[feature_cols]
-    y = df[target_col]
+    X = filtered_df[feature_cols]
+    y = filtered_df[target_col]
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split with stratification if possible
+    if len(filtered_df) >= 100:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     
     # Add Train Model Button
     st.markdown("### 🎯 Training Configuration")
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.info(f"📊 **Target Variable:** {optimization_target} | **Training Samples:** {len(X_train)} | **Test Samples:** {len(X_test)}")
+        st.info(f"📊 **Target:** {optimization_target} | **Config:** {decoder_bits}-bit, {technology_node}nm, {supply_voltage}V | **Samples:** {len(filtered_df)} | **Train/Test:** {len(X_train)}/{len(X_test)}")
     with col2:
         train_button = st.button("🚀 Train Models", type="primary", use_container_width=True)
     
-    if train_button or 'models_trained' not in st.session_state:
+    # Show dataset statistics for current configuration
+    st.markdown("### 📊 Current Configuration Statistics")
+    stat_cols = st.columns(3)
+    with stat_cols[0]:
+        st.metric("⚡ Avg Power", f"{filtered_df['power'].mean():.2f} mW", 
+                 f"{((filtered_df['power'].mean() - df['power'].mean()) / df['power'].mean() * 100):+.1f}%")
+    with stat_cols[1]:
+        st.metric("⏱️ Avg Delay", f"{filtered_df['delay'].mean():.2f} ns",
+                 f"{((filtered_df['delay'].mean() - df['delay'].mean()) / df['delay'].mean() * 100):+.1f}%")
+    with stat_cols[2]:
+        st.metric("📐 Avg Area", f"{filtered_df['area'].mean():.2f} µm²",
+                 f"{((filtered_df['area'].mean() - df['area'].mean()) / df['area'].mean() * 100):+.1f}%")
+    
+    if train_button or 'models_trained' not in st.session_state or st.session_state.get('last_config') != f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}":
         st.session_state.models_trained = True
+        st.session_state.last_config = f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}"
         
         # Train models
         with st.spinner("🔄 Training ML models... Please wait..."):
@@ -340,8 +385,9 @@ with tab2:
             st.session_state.y_train = y_train
             st.session_state.y_test = y_test
             st.session_state.feature_cols = feature_cols
+            st.session_state.filtered_df = filtered_df
         
-        st.success(f"✅ Successfully trained {len(models)} ML models!")
+        st.success(f"✅ Successfully trained {len(models)} ML models for your configuration!")
     
     # Check if models are trained
     if 'trained_models' not in st.session_state:

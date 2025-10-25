@@ -1,0 +1,131 @@
+╔═══════════════════════════════════════════════════════════════╗
+║     POWER GATING DECODER ML OPTIMIZER - SETUP GUIDE          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📋 STEP-BY-STEP SETUP INSTRUCTIONS
+═══════════════════════════════════════════════════════════════
+
+STEP 1: GitHub Repository Setup
+────────────────────────────────────────────────────────────────
+✓ Create a new GitHub repository (or use existing one)
+✓ Make sure repository is PUBLIC
+✓ Upload these 4 files:
+   1. app.py
+   2. requirements.txt
+   3. packages.txt
+   4. decoder_power_delay_area_dataset.csv
+
+
+STEP 2: Edit app.py (IMPORTANT!)
+────────────────────────────────────────────────────────────────
+Open app.py and find line ~65 (around the load_decoder_data function)
+
+FIND THIS LINE:
+url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/decoder_power_delay_area_dataset.csv"
+
+REPLACE WITH YOUR DETAILS:
+url = "https://raw.githubusercontent.com/[YOUR_GITHUB_USERNAME]/[YOUR_REPO_NAME]/main/decoder_power_delay_area_dataset.csv"
+
+EXAMPLE:
+If your GitHub username is: student123
+And your repo name is: power-decoder-project
+
+Then change to:
+url = "https://raw.githubusercontent.com/student123/power-decoder-project/main/decoder_power_delay_area_dataset.csv"
+
+
+STEP 3: Deploy on Streamlit Cloud (FREE!)
+────────────────────────────────────────────────────────────────
+1. Go to: https://streamlit.io/cloud
+2. Click "Sign in" with GitHub
+3. Click "New app" button
+4. Select:
+   - Repository: [Your repo name]
+   - Branch: main
+   - Main file path: app.py
+5. Click "Deploy"!
+6. Wait 2-3 minutes for deployment
+7. Done! Share the link with your team 🎉
+
+
+STEP 4: Local Testing (Optional)
+────────────────────────────────────────────────────────────────
+If you want to test locally first:
+
+# Install Python packages
+pip install -r requirements.txt
+
+# Run the app
+streamlit run app.py
+
+# Open browser at: http://localhost:8501
+
+
+📊 VERIFY YOUR DATASET
+════════════════════════════════════════════════════════════════
+Your CSV file MUST have exactly these 13 columns:
+
+1. decoder_size
+2. tech_node
+3. supply_voltage
+4. threshold_voltage
+5. transistor_width
+6. load_capacitance
+7. pg_efficiency
+8. switching_activity
+9. leakage_factor
+10. temperature
+11. power (target)
+12. delay (target)
+13. area (target)
+
+
+🎯 TROUBLESHOOTING
+════════════════════════════════════════════════════════════════
+Problem: "Error loading dataset"
+Solution: Check GitHub URL is correct and repo is PUBLIC
+
+Problem: "Missing columns in dataset"
+Solution: Verify CSV has all 13 required columns
+
+Problem: "Module not found"
+Solution: Make sure requirements.txt is uploaded
+
+Problem: App loads but no data
+Solution: Check CSV file is named exactly: decoder_power_delay_area_dataset.csv
+
+
+💡 PRESENTATION TIPS
+════════════════════════════════════════════════════════════════
+1. Start with Tab 1 - Show your real dataset
+2. Tab 2 - Train models and show high accuracy (>95%)
+3. Tab 3 - Make live predictions
+4. Tab 4 - Show 3D Pareto front (most impressive!)
+5. Tab 5 - Generate instant report
+
+The 3D visualization in Tab 4 will wow your teacher! 🚀
+
+
+🎓 FOR YOUR PROJECT REPORT
+════════════════════════════════════════════════════════════════
+The app automatically generates:
+✓ Complete methodology
+✓ ML model performance comparison
+✓ Feature importance analysis
+✓ Pareto-optimal configurations
+✓ Trade-off analysis
+✓ Conference paper outline
+
+
+📞 NEED HELP?
+════════════════════════════════════════════════════════════════
+Double-check:
+✓ GitHub repository is PUBLIC
+✓ URL in app.py matches your repo
+✓ CSV file has correct column names
+✓ All 4 files are uploaded to GitHub
+
+
+═══════════════════════════════════════════════════════════════
+Good luck with your project! This will definitely impress! 🏆
+═══════════════════════════════════════════════════════════════

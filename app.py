@@ -26,22 +26,90 @@ st.markdown("""
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #1f77b4;
         text-align: center;
         padding: 1rem;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #00d4ff 0%, #7b2ff7 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     .metric-card {
-        background-color: #f0f2f6;
+        background-color: #1e1e1e;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
+        border-left: 4px solid #00d4ff;
     }
     .stAlert {
-        background-color: #d4edda;
-        border-color: #c3e6cb;
+        background-color: #1a472a;
+        border-color: #2d7a4a;
+        color: #90ee90;
+    }
+    /* Dark theme customizations */
+    [data-testid="stMetricValue"] {
+        color: #00d4ff;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #b0b0b0;
+    }
+    .stDataFrame {
+        background-color: #1e1e1e;
+    }
+    .stMarkdown {
+        color: #e0e0e0;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: #0e1117;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #b0b0b0;
+        background-color: #1e1e1e;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #00d4ff;
+        border-bottom-color: #00d4ff;
+    }
+    div[data-testid="stExpander"] {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+    }
+    .stSelectbox > div > div {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+    .stSlider > div > div > div {
+        color: #00d4ff;
+    }
+    .stButton > button {
+        background: linear-gradient(90deg, #00d4ff 0%, #7b2ff7 100%);
+        color: white;
+        border: none;
+        font-weight: bold;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(90deg, #00b8e6 0%, #6a1fd9 100%);
+    }
+    /* Info boxes */
+    .stInfo {
+        background-color: #1a3a4a;
+        border-color: #2d5a7a;
+        color: #90d5ff;
+    }
+    /* Success boxes */
+    .stSuccess {
+        background-color: #1a472a;
+        border-color: #2d7a4a;
+        color: #90ee90;
+    }
+    /* Warning boxes */
+    .stWarning {
+        background-color: #4a3a1a;
+        border-color: #7a5a2d;
+        color: #ffd690;
+    }
+    /* Error boxes */
+    .stError {
+        background-color: #4a1a1a;
+        border-color: #7a2d2d;
+        color: #ff9090;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -184,19 +252,37 @@ with tab1:
     with col1:
         fig = px.histogram(df, x='power', nbins=30, title='Power Distribution',
                           labels={'power': 'Power (mW)'})
-        fig.update_traces(marker_color='#636EFA')
+        fig.update_traces(marker_color='#00d4ff')
+        fig.update_layout(
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#00d4ff'
+        )
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
         fig = px.histogram(df, x='delay', nbins=30, title='Delay Distribution',
                           labels={'delay': 'Delay (ns)'})
-        fig.update_traces(marker_color='#EF553B')
+        fig.update_traces(marker_color='#7b2ff7')
+        fig.update_layout(
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#7b2ff7'
+        )
         st.plotly_chart(fig, use_container_width=True)
     
     with col3:
         fig = px.histogram(df, x='area', nbins=30, title='Area Distribution',
                           labels={'area': 'Area (µm²)'})
-        fig.update_traces(marker_color='#00CC96')
+        fig.update_traces(marker_color='#00ff88')
+        fig.update_layout(
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#00ff88'
+        )
         st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("### 🔗 Feature Correlations")
@@ -204,6 +290,12 @@ with tab1:
     fig = px.imshow(corr_matrix, text_auto='.2f', aspect='auto',
                     title='Correlation Heatmap',
                     color_continuous_scale='RdBu_r')
+    fig.update_layout(
+        plot_bgcolor='#0e1117',
+        paper_bgcolor='#0e1117',
+        font_color='#e0e0e0',
+        title_font_color='#00d4ff'
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
@@ -270,7 +362,13 @@ with tab2:
                     title='Model Performance (R² Score)',
                     color='R² Score',
                     color_continuous_scale='Viridis')
-        fig.update_layout(showlegend=False)
+        fig.update_layout(
+            showlegend=False,
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#00d4ff'
+        )
         st.plotly_chart(fig, use_container_width=True)
     
     # Feature importance (for Random Forest)
@@ -288,6 +386,12 @@ with tab2:
                     title='Feature Importance Ranking',
                     color='Importance',
                     color_continuous_scale='Blues')
+        fig.update_layout(
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#00d4ff'
+        )
         st.plotly_chart(fig, use_container_width=True)
     
     # Actual vs Predicted
@@ -311,7 +415,13 @@ with tab2:
                              y=[y_test.min(), y_test.max()],
                              mode='lines',
                              name='Perfect Prediction',
-                             line=dict(color='red', dash='dash')))
+                             line=dict(color='#00d4ff', dash='dash')))
+    fig.update_layout(
+        plot_bgcolor='#0e1117',
+        paper_bgcolor='#0e1117',
+        font_color='#e0e0e0',
+        title_font_color='#00d4ff'
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 with tab3:
@@ -494,9 +604,17 @@ with tab4:
             scene=dict(
                 xaxis_title='Power (mW)',
                 yaxis_title='Delay (ns)',
-                zaxis_title='Area (µm²)'
+                zaxis_title='Area (µm²)',
+                bgcolor='#0e1117',
+                xaxis=dict(gridcolor='#333', color='#e0e0e0'),
+                yaxis=dict(gridcolor='#333', color='#e0e0e0'),
+                zaxis=dict(gridcolor='#333', color='#e0e0e0')
             ),
-            height=600
+            height=600,
+            plot_bgcolor='#0e1117',
+            paper_bgcolor='#0e1117',
+            font_color='#e0e0e0',
+            title_font_color='#00d4ff'
         )
         
         st.plotly_chart(fig, use_container_width=True)

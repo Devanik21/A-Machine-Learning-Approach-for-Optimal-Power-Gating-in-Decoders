@@ -53,7 +53,7 @@ st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    #st.image("https://img.icons8.com/fluency/96/000000/processor.png", width=80)
+    st.image("https://img.icons8.com/fluency/96/000000/processor.png", width=80)
     st.title("⚙️ Configuration Panel")
     
     st.markdown("### 📂 Dataset")
@@ -77,17 +77,19 @@ with st.sidebar:
     technology_node = st.selectbox("Technology Node (nm)", [180, 130, 90, 65, 45, 32, 22])
     supply_voltage = st.slider("Supply Voltage (V)", 0.6, 1.8, 1.2, 0.1)
 
-# Load dataset from GitHub
+# Load dataset from local file
 @st.cache_data
 def load_decoder_data():
     try:
-        # Load from GitHub - UPDATE THIS URL WITH YOUR GITHUB INFO
-        url = "https://github.com/Devanik21/A-Machine-Learning-Approach-for-Optimal-Power-Gating-in-Decoders/blob/main/decoder_power_delay_area_dataset.csv"
-        df = pd.read_csv(url)
+        # Load from local CSV file in the same directory
+        df = pd.read_csv("decoder_power_delay_area_dataset.csv")
         return df
+    except FileNotFoundError:
+        st.error("❌ Error: decoder_power_delay_area_dataset.csv not found!")
+        st.info("💡 Please ensure decoder_power_delay_area_dataset.csv is in the same directory as app.py")
+        st.stop()
     except Exception as e:
         st.error(f"❌ Error loading dataset: {e}")
-        st.info("💡 Please update the GitHub URL in app.py line 66 with your repository details")
         st.stop()
 
 # Validate dataset columns
@@ -140,12 +142,12 @@ if len(selected_algos) == 0:
     st.warning("⚠️ Please select at least one ML algorithm from the sidebar!")
     st.stop()
 
-# Load real dataset from GitHub
-with st.spinner("🔄 Loading dataset from GitHub..."):
+# Load real dataset from local CSV file
+with st.spinner("🔄 Loading dataset..."):
     df = load_decoder_data()
     df = validate_dataset(df)
 
-st.success(f"✅ Dataset loaded successfully! ({len(df)} samples)")
+st.success(f"✅ Dataset loaded successfully! ({len(df)} samples from decoder_power_delay_area_dataset.csv)")
 
 # Display dataset info
 col1, col2, col3, col4 = st.columns(4)

@@ -56,9 +56,8 @@ with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/000000/processor.png", width=80)
     st.title("⚙️ Configuration Panel")
     
-    st.markdown("### 📊 Data Generation")
-    n_samples = st.slider("Number of Training Samples", 100, 2000, 500, 50)
-    noise_level = st.slider("Noise Level (%)", 0, 20, 5, 1)
+    st.markdown("### 📂 Dataset")
+    st.info("Using: decoder_power_delay_area_dataset.csv")
     
     st.markdown("### 🤖 ML Algorithm Selection")
     selected_algos = st.multiselect(

@@ -320,11 +320,41 @@ with tab2:
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    # Train models
-    with st.spinner("🔄 Training ML models..."):
-        models = train_ml_models(X_train, y_train, selected_algos)
+    # Add Train Model Button
+    st.markdown("### 🎯 Training Configuration")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.info(f"📊 **Target Variable:** {optimization_target} | **Training Samples:** {len(X_train)} | **Test Samples:** {len(X_test)}")
+    with col2:
+        train_button = st.button("🚀 Train Models", type="primary", use_container_width=True)
     
-    st.success(f"✅ Successfully trained {len(models)} ML models!")
+    if train_button or 'models_trained' not in st.session_state:
+        st.session_state.models_trained = True
+        
+        # Train models
+        with st.spinner("🔄 Training ML models... Please wait..."):
+            models = train_ml_models(X_train, y_train, selected_algos)
+            st.session_state.trained_models = models
+            st.session_state.X_train = X_train
+            st.session_state.X_test = X_test
+            st.session_state.y_train = y_train
+            st.session_state.y_test = y_test
+            st.session_state.feature_cols = feature_cols
+        
+        st.success(f"✅ Successfully trained {len(models)} ML models!")
+    
+    # Check if models are trained
+    if 'trained_models' not in st.session_state:
+        st.warning("⚠️ Please click the **Train Models** button to start training!")
+        st.stop()
+    
+    # Use trained models from session state
+    models = st.session_state.trained_models
+    X_train = st.session_state.X_train
+    X_test = st.session_state.X_test
+    y_train = st.session_state.y_train
+    y_test = st.session_state.y_test
+    feature_cols = st.session_state.feature_cols
     
     # Evaluate models
     st.markdown("### 📊 Model Performance Comparison")
@@ -428,6 +458,11 @@ with tab2:
 with tab3:
     st.subheader("🎯 Design Predictions")
     
+    # Check if models are trained
+    if 'trained_models' not in st.session_state:
+        st.warning("⚠️ Please train the models first in the **ML Training** tab!")
+        st.stop()
+    
     st.markdown("### ⚙️ Input Design Parameters")
     
     col1, col2, col3 = st.columns(3)
@@ -497,6 +532,11 @@ with tab3:
 
 with tab4:
     st.subheader("📈 Multi-Objective Optimization")
+    
+    # Check if models are trained
+    if 'trained_models' not in st.session_state:
+        st.warning("⚠️ Please train the models first in the **ML Training** tab!")
+        st.stop()
     
     st.markdown("""
     This section performs **Pareto optimization** to find optimal decoder configurations

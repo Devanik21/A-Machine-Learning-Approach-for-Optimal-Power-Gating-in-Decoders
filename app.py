@@ -353,8 +353,9 @@ with tab2:
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.dataframe(results_df.style.highlight_max(subset=['R² Score', 'Accuracy %'], color='lightgreen')
-                    .highlight_min(subset=['RMSE', 'MAE'], color='lightgreen'),
+        st.dataframe(results_df.style.highlight_max(subset=['R² Score', 'Accuracy %'], color='#1a472a')
+                    .highlight_min(subset=['RMSE', 'MAE'], color='#1a472a')
+                    .set_properties(**{'color': '#e0e0e0', 'background-color': '#1e1e1e'}),
                     use_container_width=True)
     
     with col2:
@@ -628,7 +629,8 @@ with tab4:
                        'predicted_power', 'predicted_delay', 'predicted_area', 'composite_score']
         
         st.dataframe(
-            top_configs[display_cols].style.highlight_min(subset=['composite_score'], color='lightgreen'),
+            top_configs[display_cols].style.highlight_min(subset=['composite_score'], color='#1a472a')
+            .set_properties(**{'color': '#e0e0e0', 'background-color': '#1e1e1e'}),
             use_container_width=True
         )
         

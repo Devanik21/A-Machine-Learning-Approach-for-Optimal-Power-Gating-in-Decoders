@@ -77,77 +77,33 @@ with st.sidebar:
     technology_node = st.selectbox("Technology Node (nm)", [180, 130, 90, 65, 45, 32, 22])
     supply_voltage = st.slider("Supply Voltage (V)", 0.6, 1.8, 1.2, 0.1)
 
-# Generate synthetic decoder design data
+# Load dataset from GitHub
 @st.cache_data
-def generate_decoder_data(n_samples, noise_level, decoder_bits, tech_node, vdd):
-    np.random.seed(42)
+def load_decoder_data():
+    try:
+        # Load from GitHub - UPDATE THIS URL WITH YOUR GITHUB INFO
+        url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/decoder_power_delay_area_dataset.csv"
+        df = pd.read_csv(url)
+        return df
+    except Exception as e:
+        st.error(f"❌ Error loading dataset: {e}")
+        st.info("💡 Please update the GitHub URL in app.py line 66 with your repository details")
+        st.stop()
+
+# Validate dataset columns
+def validate_dataset(df):
+    required_cols = ['decoder_size', 'tech_node', 'supply_voltage', 'threshold_voltage',
+                     'transistor_width', 'load_capacitance', 'pg_efficiency',
+                     'switching_activity', 'leakage_factor', 'temperature',
+                     'power', 'delay', 'area']
     
-    # Input features
-    data = {
-        'decoder_size': np.random.randint(2, 7, n_samples),
-        'tech_node': np.random.choice([180, 130, 90, 65, 45, 32, 22], n_samples),
-        'supply_voltage': np.random.uniform(0.6, 1.8, n_samples),
-        'threshold_voltage': np.random.uniform(0.2, 0.5, n_samples),
-        'transistor_width': np.random.uniform(0.5, 10.0, n_samples),
-        'load_capacitance': np.random.uniform(10, 200, n_samples),
-        'pg_efficiency': np.random.uniform(0.5, 0.95, n_samples),
-        'switching_activity': np.random.uniform(0.1, 0.8, n_samples),
-        'leakage_factor': np.random.uniform(0.01, 0.1, n_samples),
-        'temperature': np.random.uniform(25, 85, n_samples),
-    }
+    missing_cols = [col for col in required_cols if col not in df.columns]
     
-    df = pd.DataFrame(data)
+    if missing_cols:
+        st.error(f"❌ Missing columns in dataset: {missing_cols}")
+        st.stop()
     
-    # Physics-based power calculation
-    base_power = (
-        (df['supply_voltage'] ** 2) * 
-        df['load_capacitance'] * 
-        df['switching_activity'] * 
-        (2 ** df['decoder_size']) *
-        (180 / df['tech_node'])  # Scaling with technology
-    )
-    
-    # Leakage power
-    leakage = (
-        df['supply_voltage'] * 
-        df['leakage_factor'] * 
-        (2 ** df['decoder_size']) *
-        np.exp((df['temperature'] - 25) / 100)
-    )
-    
-    # Power gating benefit
-    pg_benefit = base_power * df['pg_efficiency'] * 0.7
-    
-    df['power'] = base_power + leakage - pg_benefit
-    
-    # Delay calculation
-    df['delay'] = (
-        (df['load_capacitance'] * df['supply_voltage']) / 
-        ((df['supply_voltage'] - df['threshold_voltage']) ** 1.5) *
-        (df['tech_node'] / 45) *
-        (1 + 0.1 * df['decoder_size'])
-    )
-    
-    # Area calculation
-    df['area'] = (
-        df['transistor_width'] * 
-        (2 ** df['decoder_size']) * 
-        (df['tech_node'] / 22) ** 2 *
-        (1.2 if df['pg_efficiency'].mean() > 0.7 else 1.0)
-    )
-    
-    # Add noise
-    noise_factor = noise_level / 100
-    df['power'] *= (1 + np.random.uniform(-noise_factor, noise_factor, n_samples))
-    df['delay'] *= (1 + np.random.uniform(-noise_factor, noise_factor, n_samples))
-    df['area'] *= (1 + np.random.uniform(-noise_factor, noise_factor, n_samples))
-    
-    # Normalize outputs for better visualization
-    df['power'] = df['power'] / df['power'].max() * 100  # Scale to 0-100 mW
-    df['delay'] = df['delay'] / df['delay'].max() * 50   # Scale to 0-50 ns
-    df['area'] = df['area'] / df['area'].max() * 500     # Scale to 0-500 µm²
-    
-    return df
+    return df[required_cols]
 
 # Train ML models
 @st.cache_resource
@@ -184,9 +140,12 @@ if len(selected_algos) == 0:
     st.warning("⚠️ Please select at least one ML algorithm from the sidebar!")
     st.stop()
 
-# Generate data
-with st.spinner("🔄 Generating decoder design dataset..."):
-    df = generate_decoder_data(n_samples, noise_level, decoder_bits, technology_node, supply_voltage)
+# Load real dataset from GitHub
+with st.spinner("🔄 Loading dataset from GitHub..."):
+    df = load_decoder_data()
+    df = validate_dataset(df)
+
+st.success(f"✅ Dataset loaded successfully! ({len(df)} samples)")
 
 # Display dataset info
 col1, col2, col3, col4 = st.columns(4)
@@ -616,7 +575,7 @@ with tab5:
     st.markdown(f"""
     
     **Target Optimization:** {optimization_target}  
-    **Dataset Size:** {n_samples} samples  
+    **Dataset Size:** {len(df)} samples (Real Data from GitHub)  
     **Decoder Configuration:** {decoder_bits}-to-{2**decoder_bits} decoder  
     **Technology Node:** {technology_node} nm  
     **Supply Voltage:** {supply_voltage} V
@@ -806,11 +765,13 @@ with tab5:
 POWER GATING DECODER OPTIMIZATION REPORT
 Generated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 
+DATASET: Real data from decoder_power_delay_area_dataset.csv
+Total Samples: {len(df)}
+
 CONFIGURATION:
 - Decoder: {decoder_bits}-to-{2**decoder_bits}
 - Technology: {technology_node} nm
 - Supply Voltage: {supply_voltage} V
-- Samples: {n_samples}
 
 PERFORMANCE SUMMARY:
 - Avg Power: {df['power'].mean():.2f} mW
@@ -821,7 +782,7 @@ ML ALGORITHMS: {', '.join(selected_algos)}
 TARGET: {optimization_target}
 
 This report contains comprehensive analysis of power-gated decoder 
-optimization using machine learning techniques.
+optimization using machine learning techniques with real dataset.
         """
         
         st.download_button(

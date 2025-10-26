@@ -481,7 +481,7 @@ with tab2:
     y_pred = best_model.predict(X_test_scaled)
     
     comparison_df = pd.DataFrame({
-        'Actual': y_test.values,
+        'Actual': y_test,  # Already numpy array, no .values needed
         'Predicted': y_pred
     })
     

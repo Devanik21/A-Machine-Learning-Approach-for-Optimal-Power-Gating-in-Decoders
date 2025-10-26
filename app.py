@@ -554,7 +554,7 @@ with tab3:
             st.markdown(f"#### {target_name}")
             
             # Retrain or use existing models for each target
-            y_target = df[target_col]
+            y_target = filtered_df[target_col].values
             X_train_t, X_test_t, y_train_t, y_test_t = train_test_split(X, y_target, test_size=0.2, random_state=42)
             models_target = train_ml_models(X_train_t, y_train_t, selected_algos)
             
@@ -616,7 +616,7 @@ with tab4:
             # Predict all objectives
             objectives = {}
             for target_name, target_col in [('power', 'power'), ('delay', 'delay'), ('area', 'area')]:
-                y_target = df[target_col]
+                y_target = filtered_df[target_col].values
                 X_train_t, _, y_train_t, _ = train_test_split(X, y_target, test_size=0.2, random_state=42)
                 models_target = train_ml_models(X_train_t, y_train_t, ["Random Forest"])
                 

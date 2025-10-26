@@ -315,41 +315,41 @@ with tab2:
     
     # Apply filters with tolerance
     voltage_tolerance = 0.2
-    filtered_df = filtered_df[
+    mask = (
         (filtered_df['decoder_size'] == decoder_bits) &
         (filtered_df['tech_node'] == technology_node) &
         (filtered_df['supply_voltage'] >= supply_voltage - voltage_tolerance) &
         (filtered_df['supply_voltage'] <= supply_voltage + voltage_tolerance)
-    ]
+    )
+    
+    filtered_df = filtered_df[mask]
     
     # Check if filtered dataset has enough samples
     if len(filtered_df) < 50:
-        st.warning(f"⚠️ Only {len(filtered_df)} samples match your exact parameters. Using full dataset with emphasis on your configuration.")
+        st.warning(f"⚠️ Only {len(filtered_df)} samples match your exact parameters. Using full dataset for better model training.")
         filtered_df = df.copy()
-        # Add weight column to emphasize matching samples
-        filtered_df['weight'] = 1.0
-        mask = (
-            (filtered_df['decoder_size'] == decoder_bits) &
-            (filtered_df['tech_node'] == technology_node)
-        )
-        filtered_df.loc[mask, 'weight'] = 3.0  # Give 3x weight to matching samples
     else:
         st.success(f"✅ Found {len(filtered_df)} samples matching your configuration!")
-        filtered_df['weight'] = 1.0
     
-    # Prepare data
+    # Prepare data - make sure to reset index after filtering
+    filtered_df = filtered_df.reset_index(drop=True)
+    
     feature_cols = ['decoder_size', 'tech_node', 'supply_voltage', 'threshold_voltage',
                    'transistor_width', 'load_capacitance', 'pg_efficiency',
                    'switching_activity', 'leakage_factor', 'temperature']
     
-    X = filtered_df[feature_cols]
-    y = filtered_df[target_col]
+    X = filtered_df[feature_cols].values  # Use .values to ensure clean array
+    y = filtered_df[target_col].values    # Use .values to ensure clean array
     
-    # Split with stratification if possible
+    # Split with appropriate test size
     if len(filtered_df) >= 100:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        test_size = 0.2
+    elif len(filtered_df) >= 50:
+        test_size = 0.25
     else:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        test_size = 0.3
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
     
     # Add Train Model Button
     st.markdown("### 🎯 Training Configuration")
@@ -372,9 +372,9 @@ with tab2:
         st.metric("📐 Avg Area", f"{filtered_df['area'].mean():.2f} µm²",
                  f"{((filtered_df['area'].mean() - df['area'].mean()) / df['area'].mean() * 100):+.1f}%")
     
-    if train_button or 'models_trained' not in st.session_state or st.session_state.get('last_config') != f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}":
+    if train_button or 'models_trained' not in st.session_state or st.session_state.get('last_config') != f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}_{len(filtered_df)}":
         st.session_state.models_trained = True
-        st.session_state.last_config = f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}"
+        st.session_state.last_config = f"{decoder_bits}_{technology_node}_{supply_voltage}_{optimization_target}_{len(filtered_df)}"
         
         # Train models
         with st.spinner("🔄 Training ML models... Please wait..."):

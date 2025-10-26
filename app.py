@@ -1261,177 +1261,8 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
-    # Generate optimization space
-    n_opt_samples = st.slider("Optimization Samples", 100, 1000, 300, 50)
     
-    if st.button("🔍 Run Optimization", type="primary"):
-        with st.spinner("🔄 Exploring design space..."):
-            # Generate diverse configurations
-            opt_configs = []
-            for _ in range(n_opt_samples):
-                config = {
-                    'decoder_size': np.random.randint(2, 7),
-                    'tech_node': np.random.choice([180, 130, 90, 65, 45, 32, 22]),
-                    'supply_voltage': np.random.uniform(0.6, 1.8),
-                    'threshold_voltage': np.random.uniform(0.2, 0.5),
-                    'transistor_width': np.random.uniform(0.5, 10.0),
-                    'load_capacitance': np.random.uniform(10, 200),
-                    'pg_efficiency': np.random.uniform(0.5, 0.95),
-                    'switching_activity': np.random.uniform(0.1, 0.8),
-                    'leakage_factor': np.random.uniform(0.01, 0.1),
-                    'temperature': np.random.uniform(25, 85)
-                }
-                opt_configs.append(config)
-            
-            opt_df = pd.DataFrame(opt_configs)
-            
-            # Predict all objectives
-            objectives = {}
-            for target_name, target_col in [('power', 'power'), ('delay', 'delay'), ('area', 'area')]:
-                y_target = filtered_df[target_col].values
-                X_train_t, _, y_train_t, _ = train_test_split(X, y_target, test_size=0.2, random_state=42)
-                models_target = train_ml_models(X_train_t, y_train_t, ["Random Forest"])
-                
-                model, scaler = models_target['Random Forest']
-                opt_scaled = scaler.transform(opt_df)
-                predictions = model.predict(opt_scaled)
-                objectives[target_name] = predictions
-            
-            opt_df['predicted_power'] = objectives['power']
-            opt_df['predicted_delay'] = objectives['delay']
-            opt_df['predicted_area'] = objectives['area']
-            
-            # Calculate Pareto front (simplified)
-            opt_df['pareto_rank'] = 0
-            
-            # Normalize objectives
-            opt_df['norm_power'] = (opt_df['predicted_power'] - opt_df['predicted_power'].min()) / (opt_df['predicted_power'].max() - opt_df['predicted_power'].min())
-            opt_df['norm_delay'] = (opt_df['predicted_delay'] - opt_df['predicted_delay'].min()) / (opt_df['predicted_delay'].max() - opt_df['predicted_delay'].min())
-            opt_df['norm_area'] = (opt_df['predicted_area'] - opt_df['predicted_area'].min()) / (opt_df['predicted_area'].max() - opt_df['predicted_area'].min())
-            
-            opt_df['composite_score'] = opt_df['norm_power'] + opt_df['norm_delay'] + opt_df['norm_area']
-            
-            # Find Pareto optimal solutions
-            pareto_mask = np.ones(len(opt_df), dtype=bool)
-            for i in range(len(opt_df)):
-                for j in range(len(opt_df)):
-                    if i != j:
-                        if (opt_df.iloc[j]['predicted_power'] <= opt_df.iloc[i]['predicted_power'] and
-                            opt_df.iloc[j]['predicted_delay'] <= opt_df.iloc[i]['predicted_delay'] and
-                            opt_df.iloc[j]['predicted_area'] <= opt_df.iloc[i]['predicted_area'] and
-                            (opt_df.iloc[j]['predicted_power'] < opt_df.iloc[i]['predicted_power'] or
-                             opt_df.iloc[j]['predicted_delay'] < opt_df.iloc[i]['predicted_delay'] or
-                             opt_df.iloc[j]['predicted_area'] < opt_df.iloc[i]['predicted_area'])):
-                            pareto_mask[i] = False
-                            break
-            
-            opt_df['is_pareto'] = pareto_mask
-            
-        st.success(f"✅ Found {pareto_mask.sum()} Pareto-optimal configurations!")
-        
-        # 3D Pareto visualization
-        st.markdown("### 🎯 Pareto Front Visualization")
-        
-        fig = go.Figure()
-        
-        # Non-Pareto points
-        non_pareto = opt_df[~opt_df['is_pareto']]
-        fig.add_trace(go.Scatter3d(
-            x=non_pareto['predicted_power'],
-            y=non_pareto['predicted_delay'],
-            z=non_pareto['predicted_area'],
-            mode='markers',
-            marker=dict(size=4, color='lightgray', opacity=0.5),
-            name='Sub-optimal'
-        ))
-        
-        # Pareto points
-        pareto = opt_df[opt_df['is_pareto']]
-        fig.add_trace(go.Scatter3d(
-            x=pareto['predicted_power'],
-            y=pareto['predicted_delay'],
-            z=pareto['predicted_area'],
-            mode='markers',
-            marker=dict(size=8, color=pareto['composite_score'],
-                       colorscale='Viridis', showscale=True,
-                       colorbar=dict(title="Composite Score")),
-            name='Pareto Optimal'
-        ))
-        
-        fig.update_layout(
-            title='3D Pareto Front: Power-Delay-Area Trade-off',
-            scene=dict(
-                xaxis_title='Power (mW)',
-                yaxis_title='Delay (ns)',
-                zaxis_title='Area (µm²)',
-                bgcolor='#0e1117',
-                xaxis=dict(gridcolor='#333', color='#e0e0e0'),
-                yaxis=dict(gridcolor='#333', color='#e0e0e0'),
-                zaxis=dict(gridcolor='#333', color='#e0e0e0')
-            ),
-            height=600,
-            plot_bgcolor='#0e1117',
-            paper_bgcolor='#0e1117',
-            font_color='#e0e0e0',
-            title_font_color='#00d4ff'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Top configurations
-        st.markdown("### 🏆 Top 5 Optimal Configurations")
-        
-        top_configs = opt_df[opt_df['is_pareto']].nsmallest(5, 'composite_score')
-        
-        display_cols = ['decoder_size', 'tech_node', 'supply_voltage', 'pg_efficiency',
-                       'predicted_power', 'predicted_delay', 'predicted_area', 'composite_score']
-        
-        st.dataframe(
-            top_configs[display_cols].style.highlight_min(subset=['composite_score'], color='#1a472a')
-            .set_properties(**{'color': '#e0e0e0', 'background-color': '#1e1e1e'}),
-            use_container_width=True
-        )
-        
-        # Best configuration details
-        st.markdown("### 🥇 Recommended Optimal Configuration")
-        best_config = top_configs.iloc[0]
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("⚡ Power", f"{best_config['predicted_power']:.2f} mW")
-        with col2:
-            st.metric("⏱️ Delay", f"{best_config['predicted_delay']:.2f} ns")
-        with col3:
-            st.metric("📐 Area", f"{best_config['predicted_area']:.2f} µm²")
-        with col4:
-            st.metric("🎯 Score", f"{best_config['composite_score']:.3f}")
-        
-        st.markdown("#### Configuration Parameters:")
-        config_details = {
-            'Decoder Size': f"{int(best_config['decoder_size'])} bits",
-            'Technology Node': f"{int(best_config['tech_node'])} nm",
-            'Supply Voltage': f"{best_config['supply_voltage']:.2f} V",
-            'Threshold Voltage': f"{best_config['threshold_voltage']:.2f} V",
-            'Transistor Width': f"{best_config['transistor_width']:.2f} µm",
-            'Load Capacitance': f"{best_config['load_capacitance']:.1f} fF",
-            'PG Efficiency': f"{best_config['pg_efficiency']:.2%}",
-            'Switching Activity': f"{best_config['switching_activity']:.2f}",
-            'Leakage Factor': f"{best_config['leakage_factor']:.3f}",
-            'Temperature': f"{best_config['temperature']:.1f} °C"
-        }
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            for k, v in list(config_details.items())[:5]:
-                st.info(f"**{k}:** {v}")
-        with col2:
-            for k, v in list(config_details.items())[5:]:
-                st.info(f"**{k}:** {v}")
-
-with tab5:
-    st.subheader("📄 Project Report & Insights")
-    
-    st.markdown(f"""
+st.markdown(f"""
     ## Power Gating in Decoders - ML Optimization Report
     
     ### 📋 Project Overview
@@ -1449,10 +1280,9 @@ with tab5:
     **Algorithms Implemented:**
     """)
     
-    for algo in selected_algos:
+for algo in selected_algos:
         st.markdown(f"- ✅ {algo}")
-    
-    st.markdown(f"""
+        st.markdown(f"""
     
     **Target Optimization:** {optimization_target}  
     **Dataset Size:** {len(df)} samples (Real Data from GitHub)  
@@ -1471,7 +1301,7 @@ with tab5:
     The machine learning models achieved high prediction accuracy:
     """)
     
-    if len(selected_algos) > 0:
+if len(selected_algos) > 0:
         # Quick model evaluation
         feature_cols = ['decoder_size', 'tech_node', 'supply_voltage', 'threshold_voltage',
                        'transistor_width', 'load_capacitance', 'pg_efficiency',
@@ -1487,7 +1317,7 @@ with tab5:
             r2 = r2_score(y_test_quick, y_pred)
             st.markdown(f"- **{name}:** R² Score = {r2:.4f} ({r2*100:.2f}% accuracy)")
     
-    st.markdown("""
+            st.markdown("""
     
     ### 💡 Design Insights
     
@@ -1627,9 +1457,9 @@ with tab5:
     """)
     
     # Export functionality
-    col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
     
-    with col1:
+with col1:
         # Export dataset
         csv_data = df.to_csv(index=False)
         st.download_button(
@@ -1639,7 +1469,7 @@ with tab5:
             mime="text/csv"
         )
     
-    with col2:
+with col2:
         # Export report
         report_text = f"""
 POWER GATING DECODER OPTIMIZATION REPORT
@@ -1672,11 +1502,11 @@ optimization using machine learning techniques with real dataset.
             mime="text/plain"
         )
     
-    with col3:
+with col3:
         st.info("💡 **Tip:** Use these exports for your conference paper and project documentation!")
     
-    st.markdown("---")
-    st.markdown("""
+st.markdown("---")
+st.markdown("""
     ### 🎓 Tips for Your Presentation
     
     1. **Start with the Problem:** Explain why power consumption is critical in modern decoders
@@ -1704,7 +1534,7 @@ optimization using machine learning techniques with real dataset.
     demonstrates the future of AI-driven circuit optimization."*
     """)
     
-    st.success("✅ **This comprehensive report is ready for your project documentation and conference paper!**")
+st.success("✅ **This comprehensive report is ready for your project documentation and conference paper!**")
 
 # Footer
 st.markdown("---")

@@ -933,11 +933,13 @@ with tab6:
         with st.spinner(f"Optimizing for minimum {bayes_target}... This may take a moment."):
             result = gp_minimize(func=objective, dimensions=space_dimensions, n_calls=n_calls, random_state=42, n_jobs=-1)
             st.session_state.bayes_result = result
-            st.session_state.bayes_target = bayes_target
+            # Store the target for which this result was generated
+            st.session_state.bayes_result_target = bayes_target
 
-    if 'bayes_result' in st.session_state and st.session_state.bayes_target == bayes_target:
+    # Only show results if they correspond to the currently selected target
+    if 'bayes_result' in st.session_state and st.session_state.get('bayes_result_target') == bayes_target:
         result = st.session_state.bayes_result
-        st.success(f"Optimization complete! Minimum {bayes_target} found: **{result.fun:.4f}**")
+        st.success(f"Optimization complete! Minimum **{st.session_state.bayes_result_target}** found: **{result.fun:.4f}**")
         
         st.markdown("#### 🏆 Optimal Parameters Found:")
         best_params = {dim.name: val for dim, val in zip(result.space.dimensions, result.x)}
@@ -951,7 +953,7 @@ with tab6:
         st.markdown("#### 📉 Convergence Plot")
         fig, ax = plt.subplots(figsize=(8, 4))
         plot_convergence(result, ax=ax)
-        ax.set_title(f"Convergence of Bayesian Optimization for {bayes_target.capitalize()}", color='#00d4ff')
+        ax.set_title(f"Convergence of Bayesian Optimization for {st.session_state.bayes_result_target.capitalize()}", color='#00d4ff')
         ax.set_facecolor("#0e1117")
         fig.patch.set_facecolor('#0e1117')
         for spine in ax.spines.values():

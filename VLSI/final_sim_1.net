@@ -1,0 +1,49 @@
+* Project GRP 28 - NIT Agartala
+
+.include 32nm_LP.pm
+
+* Power & Pulse Inputs (64ns to cover all 16 transitions)
+v_pwr vdd 0 1.0
+va a 0 pulse(0 1 0 1n 1n 2n 4n)
+vb b 0 pulse(0 1 0 1n 1n 4n 8n)
+
+* --- Inverter A (Only 1 inverter used to reduce count) ---
+m1 a_i a vdd vdd pmos l=32n w=128n
+m2 a_i a 0 0 nmos l=32n w=64n
+
+* --- D0 Stage: Static CMOS NOR (4 Transistors) ---
+* Implements restoring logic for High Performance
+m_d0_p1 n1 a vdd vdd pmos l=32n w=128n
+m_d0_p2 d0 b n1 vdd pmos l=32n w=128n
+m_d0_n1 d0 a 0 0 nmos l=32n w=64n
+m_d0_n2 d0 b 0 0 nmos l=32n w=64n
+
+* --- D1 Stage: TGL Gate (3 Transistors) ---
+* Minterm AB' - uses B as propagate to avoid B inverter
+m_d1_p d1 a_i b vdd pmos l=32n w=128n
+m_d1_n1 d1 a b 0 nmos l=32n w=64n
+m_d1_n2 d1 a 0 0 nmos l=32n w=64n
+
+* --- D2 Stage: DVL Gate (3 Transistors) ---
+* Minterm A'B - uses A as propagate
+m_d2_p d2 b a_i vdd pmos l=32n w=128n
+m_d2_n1 d2 b a 0 nmos l=32n w=64n
+m_d2_n2 d2 a_inv 0 0 nmos l=32n w=64n
+
+* --- D3 Stage: TGL Gate (3 Transistors) ---
+* Minterm AB - uses B as propagate
+m_d3_p d3 a b vdd pmos l=32n w=128n
+m_d3_n1 d3 a_i b 0 nmos l=32n w=64n
+m_d3_n2 d3 a_i 0 0 nmos l=32n w=64n
+
+* Output Capacitance (0.2 fF per paper specs)
+c0 d0 0 0.2f
+c1 d1 0 0.2f
+c2 d2 0 0.2f
+c3 d3 0 0.2f
+
+* Analysis & Measurements
+.tran 64n
+.meas tran pwr_avg AVG I(v_pwr)*V(vdd)
+.meas tran del_max trig V(a) val=0.5 rise=1 targ V(d3) val=0.5 rise=1
+.end

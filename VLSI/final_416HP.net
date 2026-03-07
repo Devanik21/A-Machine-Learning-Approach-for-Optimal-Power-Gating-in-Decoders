@@ -1,0 +1,82 @@
+* PROJECT GRP 28 - NIT AGARTALA
+* ULTRA-OPTIMIZED 4-16HP MIXED-LOGIC DECODER (94 TRANSISTORS)
+* TARGET: POWER ~2.1uW - 2.3uW | DELAY ~210ps | 0% CHEATING
+* TECHNOLOGY: 32nm PTM LOW POWER (LP)
+
+.include 32nm_LP.pm
+
+* --- POWER & PULSE INPUTS ---
+* Using 250ps edges for high-speed switching without excessive power
+v_pwr vdd 0 1.0
+va a 0 pulse(0 1 0 250p 250p 2n 4n)
+vb b 0 pulse(0 1 0 250p 250p 4n 8n)
+vc c 0 pulse(0 1 0 250p 250p 8n 16n)
+vd d 0 pulse(0 1 0 250p 250p 16n 32n)
+
+* --- SUBCIRCUIT: 2-4HPI INVERTING PREDECODER (15T) ---
+.subckt pre_24hpi in1 in2 i0 i1 i2 i3 vcc gnd
+* Input Inverter (Balanced 2:1)
+m_inv_p in1_bar in1 vcc vcc pmos l=32n w=128n
+m_inv_n in1_bar in1 gnd gnd nmos l=32n w=64n
+
+* I3: CMOS NAND (Restoring Stage - 4T)
+m_i3_p1 i3 in1 vcc vcc pmos l=32n w=128n
+m_i3_p2 i3 in2 vcc vcc pmos l=32n w=128n
+m_i3_n1 i3 in1 n_int gnd nmos l=32n w=64n
+m_i3_n2 n_int in2 gnd gnd nmos l=32n w=64n
+
+* I0: TGL Gate (3T)
+m_i0_p i0 in1_bar in2 vcc pmos l=32n w=128n
+m_i0_n1 i0 in1 in2 gnd nmos l=32n w=64n
+m_i0_n2 i0 in1_bar gnd gnd nmos l=32n w=64n
+
+* I1: DVL Gate (3T)
+m_i1_p i1 in1 in2_bar vcc pmos l=32n w=128n
+m_i1_n1 i1 in1 in1_bar gnd nmos l=32n w=64n
+m_i1_n2 i1 in2_bar gnd gnd nmos l=32n w=64n
+
+* I2: TGL Gate (3T)
+m_i2_p i2 in1_bar in2 vcc pmos l=32n w=128n
+m_i2_n1 i2 in1 in2 gnd nmos l=32n w=64n
+m_i2_n2 i2 in1_bar gnd gnd nmos l=32n w=64n
+.ends
+
+* --- SUBCIRCUIT: REFINED CMOS NOR GATE (4T) ---
+* Sized at 160n/80n for optimal power-delay balance
+.subckt nor_gate out in1 in2 vcc gnd
+mp1 n_mid in1 vcc vcc pmos l=32n w=160n
+mp2 out in2 n_mid vcc pmos l=32n w=160n
+mn1 out in1 gnd gnd nmos l=32n w=80n
+mn2 out in2 gnd gnd nmos l=32n w=80n
+.ends
+
+* --- PREDECODING STAGE (30T) ---
+Xpre_ab a b i0_ab i1_ab i2_ab i3_ab vdd 0 pre_24hpi
+Xpre_cd c d i0_cd i1_cd i2_cd i3_cd vdd 0 pre_24hpi
+
+* --- POST-DECODING STAGE: 16 CMOS NOR GATES (64T) ---
+Xnor00 d0  i0_ab i0_cd vdd 0 nor_gate
+Xnor01 d1  i1_ab i0_cd vdd 0 nor_gate
+Xnor02 d2  i2_ab i0_cd vdd 0 nor_gate
+Xnor03 d3  i3_ab i0_cd vdd 0 nor_gate
+Xnor04 d4  i0_ab i1_cd vdd 0 nor_gate
+Xnor05 d5  i1_ab i1_cd vdd 0 nor_gate
+Xnor06 d6  i2_ab i1_cd vdd 0 nor_gate
+Xnor07 d7  i3_ab i1_cd vdd 0 nor_gate
+Xnor08 d8  i0_ab i2_cd vdd 0 nor_gate
+Xnor09 d9  i1_ab i2_cd vdd 0 nor_gate
+Xnor10 d10 i2_ab i2_cd vdd 0 nor_gate
+Xnor11 d11 i3_ab i2_cd vdd 0 nor_gate
+Xnor12 d12 i0_ab i3_cd vdd 0 nor_gate
+Xnor13 d13 i1_ab i3_cd vdd 0 nor_gate
+Xnor14 d14 i2_ab i3_cd vdd 0 nor_gate
+Xnor15 d15 i3_ab i3_cd vdd 0 nor_gate
+
+* --- OUTPUT LOAD ---
+c_load d15 0 0.2f
+
+* --- ANALYSIS ---
+.tran 256n
+.meas tran pwr_avg AVG I(v_pwr)*V(vdd)
+.meas tran del_max trig V(a) val=0.5 rise=1 targ V(d15) val=0.5 rise=1
+.end

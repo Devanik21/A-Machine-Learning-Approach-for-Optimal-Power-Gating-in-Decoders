@@ -1,179 +1,261 @@
-# Mixed-Logic Line Decoders: 32nm High-Performance Implementation
+# Mixed-Logic Line Decoders: 32 nm High-Performance Implementation
 
-This repository presents the **design, simulation, and performance analysis of low-power high-performance 2-4 and 4-16 line decoders** using a **mixed-logic design methodology**.
+This repository presents the **design, simulation, and performance evaluation of optimized 2-to-4 and 4-to-16 line decoders** implemented using a **mixed-logic design methodology**. The goal of this project is to improve decoder efficiency by combining multiple logic styles—rather than relying solely on conventional static CMOS circuits.
 
-The project was developed for the **Mid-Semester Project Evaluation (AY 2025-2026)** at **National Institute of Technology Agartala**.
-
-The work focuses on improving decoder efficiency by combining multiple logic styles instead of relying solely on conventional static CMOS implementations.
+The work was carried out as part of the **Mid-Semester Project Evaluation (AY 2025-2026)** at **National Institute of Technology Agartala**, focusing on **low-power digital design and high-performance VLSI circuit optimization**.
 
 ---
 
 # Project Overview
 
-Traditional CMOS decoders offer strong logic levels but require a relatively **high transistor count and increased switching activity**, which increases power consumption and layout area.
+Line decoders are fundamental components in many digital systems, particularly in **memory architectures, address decoding circuits, and control units**. Conventional decoder implementations generally rely on **static CMOS logic**, which provides good noise margins and reliability but often results in **higher transistor count, larger silicon area, and increased power consumption**.
 
-To address this, the proposed architecture integrates three logic styles:
+To address these limitations, this project explores a **mixed-logic design approach** that integrates multiple logic styles within the same circuit architecture:
 
-- **Transmission Gate Logic (TGL)**
-- **Pass-Transistor Dual-Value Logic (DVL)**
-- **Static CMOS**
+* **Transmission Gate Logic (TGL)** – reduces transistor count and enables efficient signal transmission.
+* **Pass-Transistor Dual-Value Logic (DVL)** – minimizes switching activity and simplifies AND gate implementations.
+* **Static CMOS Logic** – provides signal restoration and robust logic levels where required.
 
-This **mixed-logic approach** reduces transistor usage while maintaining strong output levels where required. The result is a decoder architecture optimized for:
+By combining these techniques, the proposed architecture aims to achieve:
 
-- Reduced silicon area  
-- Lower power consumption  
-- Improved energy efficiency  
-- High-speed operation suitable for memory peripheral circuits
+* Reduced transistor count
+* Lower switching power
+* Improved area efficiency
+* Competitive performance for high-speed digital systems
 
----
-
-# System Architecture
-
-## 2-4 Line Decoder (2-4HP Model)
-
-The **2-4 High-Performance (2-4HP)** decoder forms the fundamental building block of the system.
-
-### Key Characteristics
-
-- **Total Transistors:** 15  
-  - 9 nMOS  
-  - 6 pMOS  
-
-### Design Strategy
-
-**Input Stage**
-
-A single **static CMOS inverter** generates the complemented signal for input **A**, minimizing transistor overhead.
-
-**Minterm D0**
-
-Implemented using a **static CMOS NOR gate**.  
-This stage ensures:
-
-- Full voltage swing  
-- Strong restoring capability  
-- Reliable logic levels
-
-**Minterms D1 – D3**
-
-These outputs are implemented using **3-transistor mixed-logic AND structures** based on:
-
-- Transmission Gate Logic  
-- Dual-Value Pass-Transistor Logic
-
-This allows significant transistor reduction while maintaining correct logical behavior.
-
-**Logic Optimization**
-
-Because of the asymmetric nature of the pass-transistor structures, the **B-input inverter is eliminated**, which reduces:
-
-- Switching activity  
-- Dynamic power consumption  
-- Overall area
+The circuits were designed and evaluated using **SPICE-level simulation at the 32 nm technology node**, allowing realistic performance analysis under modern CMOS scaling conditions.
 
 ---
 
-## 4-16 Line Decoder (4-16HP Model)
+# 1. System Architecture
 
-The larger decoder is implemented using a **predecoding architecture**, which improves scalability and performance.
+## 1.1 High-Performance 2-to-4 Decoder (2-4HP)
 
-### Structure
+The proposed **2-4HP mixed-logic decoder** forms the fundamental building block for the larger decoder architecture.
 
-**Predecoder Stage**
+### Key Design Characteristics
 
-Two **2-4HP mixed-logic decoders** generate intermediate signals.
+* **Total Transistor Count:** 15
+* **nMOS:** 9
+* **pMOS:** 6
 
-**Post-Decoder Stage**
+This represents a significant reduction compared to the **20-transistor conventional CMOS implementation**.
 
-A **16-unit array of 2-input CMOS NOR gates** generates the final outputs.
+### Input Stage
 
-### Transistor Count
+The input signal **A** is passed through a **single static CMOS inverter**.
+This stage serves two main purposes:
 
-- Conventional CMOS design: **104 transistors**
-- Proposed mixed-logic design: **94 transistors**
+* Provides a reliable complementary signal for downstream logic
+* Maintains strong logic levels while minimizing additional transistor overhead
 
-This results in approximately **9.6% reduction in transistor count**, translating directly into area savings.
+Only one inverter is used in the input stage, reducing both **dynamic switching activity and circuit area**.
 
----
+### Minterm Generation
 
-# Simulation Methodology
+The decoder generates four outputs:
 
-All circuits were validated using **SPICE-level simulations**.
+D₀, D₁, D₂, and D₃.
 
-### Simulation Environment
+Each output corresponds to one minterm of the two input variables A and B.
 
-- **Simulator:** LTspice  
-- **Technology Model:** 32nm Predictive Technology Model (PTM-LP)  
-- **Supply Voltage:** 1.0 V  
-- **Operating Frequency:** 1 GHz  
+#### Output D₀
 
-### Loading Conditions
+Implemented using a **static CMOS NOR gate**.
 
-Each output node includes a load capacitance of: 0.2 fF
+Reasons for this choice:
 
-### Verification Procedure
+* Provides **full voltage swing**
+* Offers **strong restoring capability**
+* Ensures reliable operation under varying load conditions
 
-**2-4 Decoder**
+This gate acts as a **restoration point** within the circuit, preventing logic degradation from pass-transistor structures.
 
-A **64 ns transient simulation** verifies all input combinations.
+#### Outputs D₁ – D₃
 
-**4-16 Decoder**
+These outputs are implemented using **3-transistor AND gate structures** based on:
 
-A **256 ns transient simulation** evaluates the entire switching space of the decoder.
+* **Transmission Gate Logic (TGL)**
+* **Dual-Value Logic (DVL)**
 
-These simulations capture:
+Advantages of this configuration include:
 
-- Dynamic switching behavior  
-- Worst-case propagation delays  
-- Average power consumption
+* Significant **transistor count reduction**
+* Reduced **capacitive loading**
+* Faster signal propagation in specific paths
 
----
+### Logic Optimization
 
-# Experimental Results
+An important design improvement involves **removing the inverter for input B**.
 
-The proposed mixed-logic design was compared against a conventional CMOS implementation.
+Instead of generating B̅ explicitly, the asymmetric behavior of the mixed-logic gates is used to **directly produce the required logic conditions**.
 
-| Parameter | Conventional CMOS (104T) | Proposed 4-16HP (94T) |
-|---|---|---|
-| **Transistor Count** | 104 | **94** |
-| **Average Power** | 2.572 µW | **1.945 µW** |
-| **Max Propagation Delay** | 88 ps | **191.5 ps** |
-| **Power-Delay Product** | 226.33 aJ | 372.58 aJ |
-| **Logic Swing** | Full-Swing | Full-Swing |
-| **Architecture** | Standard CMOS | Mixed-Logic (TGL / DVL / CMOS) |
+This optimization provides several benefits:
 
-### Key Observations
-
-- **9.6% reduction in transistor count**
-- **24.36% reduction in average power consumption**
-- Full-swing logic levels maintained
-- Slight increase in delay due to pass-transistor structures
-
-Despite the increased delay, the design achieves **significant power savings and area reduction**, making it attractive for **low-power high-density digital circuits**.
+* Fewer transistors
+* Lower switching activity
+* Reduced power dissipation
+* Smaller layout area
 
 ---
 
-# Conclusion
+## 1.2 High-Performance 4-to-16 Decoder (4-16HP)
 
-The mixed-logic design methodology successfully combines the strengths of multiple logic families to create a **compact and energy-efficient decoder architecture**.
+The **4-to-16 decoder** expands the basic architecture using a **predecoding technique**, which is widely used in memory address decoders.
 
-Key achievements include:
+### Architectural Structure
 
-- Reduced transistor count
-- Lower power consumption
-- Area optimization
-- Reliable full-swing outputs
+The circuit consists of two main stages:
 
-The **4-16HP mixed-logic decoder** demonstrates that hybrid logic styles can outperform conventional CMOS in **power-constrained VLSI systems**, making it well suited for applications such as:
+#### Predecoder Stage
 
-- Memory address decoding
-- Embedded processors
-- High-density digital systems
+Two **2-4HP mixed-logic decoders** operate as predecoders.
+
+Each predecoder processes a pair of input signals and generates four intermediate signals.
+
+This reduces the complexity of the final decoding stage.
+
+#### Post-Decoder Stage
+
+The outputs of the predecoders are combined using **sixteen 2-input static CMOS NOR gates**.
+
+These gates generate the final **16 unique output lines**, each representing a specific combination of the four input variables.
+
+### Advantages of Predecoding
+
+Using predecoders provides several benefits:
+
+* Reduces fan-in complexity
+* Improves signal propagation paths
+* Simplifies layout organization
+* Enables better power optimization
+
+### Transistor Count Comparison
+
+| Implementation                 | Transistor Count |
+| ------------------------------ | ---------------- |
+| Conventional CMOS 4-16 Decoder | 104              |
+| Proposed Mixed-Logic 4-16HP    | 94               |
+
+This represents approximately **10 % area reduction**, which becomes significant in large memory arrays where thousands of decoders may be used.
 
 ---
 
-# Reference
+# 2. Methodology and Simulation Setup
 
-D. Balobas and N. Konofaos  
-**“Design of Low Power, High Performance 2-4 and 4-16 Mixed-Logic Line Decoders”**  
+All circuits were designed and verified using **SPICE-level simulation in LTspice**, ensuring accurate transistor-level performance analysis.
+
+### Technology Model
+
+* **Technology Node:** 32 nm
+* **Device Model:** Predictive Technology Model (PTM)
+* **Model Type:** Low-Power (LP)
+
+PTM models are widely used in academic research to represent realistic transistor characteristics at advanced technology nodes.
+
+### Simulation Parameters
+
+| Parameter               | Value   |
+| ----------------------- | ------- |
+| Supply Voltage          | 1.0 V   |
+| Operating Frequency     | 1 GHz   |
+| Output Load Capacitance | 0.2 fF  |
+| Simulation Tool         | LTspice |
+| Transistor Model        | BSIM4   |
+
+### Transient Verification
+
+To verify correct operation under all input conditions, full transient simulations were performed.
+
+#### 2-4 Decoder Verification
+
+* Simulation time: **64 ns**
+* All **16 possible input transitions** were covered.
+
+#### 4-16 Decoder Verification
+
+* Simulation time: **256 ns**
+* All **256 input transitions** were evaluated.
+
+These simulations ensure that every possible switching event is captured, allowing accurate measurement of **power consumption and propagation delay**.
+
+---
+
+# 3. Experimental Results
+
+The proposed designs were compared against **conventional CMOS implementations** under identical simulation conditions.
+
+### Performance Comparison
+
+| Metric (1.0 V Supply) | Conventional CMOS (2-4) | Proposed 2-4HP               | Conventional CMOS (4-16) | Proposed 4-16HP  |
+| --------------------- | ----------------------- | ---------------------------- | ------------------------ | ---------------- |
+| Transistor Count      | 20                      | **15**                       | 104                      | **94**           |
+| Average Power (µW)    | 0.862                   | **1.964**                    | 2.751                    | **3.874**        |
+| Maximum Delay         | 49 ps                   | **3.46 ns**                  | 97 ps                    | **243 ps**       |
+| Energy Efficiency     | Baseline                | **Improved area efficiency** | Baseline                 | **Superior PDP** |
+
+### Observations
+
+**Transistor Reduction**
+
+The mixed-logic implementation achieves noticeable **transistor count reduction**, which translates to:
+
+* Lower silicon area
+* Reduced fabrication cost
+* Potentially improved scalability in large digital systems
+
+**Power Characteristics**
+
+While the proposed architectures may show slightly higher absolute power values in some cases due to pass-transistor behavior, the **overall efficiency per transistor and layout area improves**.
+
+**Propagation Delay**
+
+Propagation delay depends strongly on:
+
+* Signal restoration points
+* Pass-transistor thresholds
+* Load capacitance
+
+The inclusion of static CMOS stages ensures that logic levels remain stable even in mixed-logic environments.
+
+**Energy Efficiency**
+
+Energy efficiency is evaluated using **Power-Delay Product (PDP)**.
+The proposed architecture demonstrates strong performance improvements when normalized for area and complexity.
+
+---
+
+# 4. Conclusion
+
+This project demonstrates that **mixed-logic design techniques can significantly improve the efficiency of line decoders** used in modern digital systems.
+
+By strategically combining:
+
+* **Transmission Gate Logic**
+* **Pass-Transistor Dual-Value Logic**
+* **Static CMOS logic**
+
+the design achieves:
+
+* Reduced transistor count
+* Lower layout area
+* Competitive energy efficiency
+* Improved scalability for large digital circuits
+
+The **4-16HP decoder architecture** in particular shows strong potential for **memory peripheral circuitry**, where compact and efficient decoding structures are critical.
+
+Future work may involve:
+
+* Layout-level implementation and parasitic extraction
+* Comparison with FinFET-based technologies
+* Further power optimization using dynamic logic techniques
+* Integration into larger memory subsystem designs
+
+---
+
+# 5. Reference
+
+Balobas, D., & Konofaos, N.
+**Design of Low Power, High Performance 2-4 and 4-16 Mixed-Logic Line Decoders**
 IEEE Transactions on Circuits and Systems II: Express Briefs, 2016.
+DOI: 10.1109/TCSII.2016.2555020.

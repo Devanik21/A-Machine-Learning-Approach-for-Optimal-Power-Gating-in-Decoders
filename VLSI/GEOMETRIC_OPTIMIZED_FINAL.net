@@ -1,0 +1,44 @@
+* Project GRP 28 - NIT Agartala
+* Optimized 2-4HP Mixed-Logic Decoder
+.include 32nm_LP.pm
+
+* Power & Pulse Inputs
+v_pwr vdd 0 1.0
+va a 0 pulse(0 1 0 1n 1n 2n 4n)
+vb b 0 pulse(0 1 0 1n 1n 4n 8n)
+
+* --- Inverter A (Balanced 2:1 Ratio) ---
+m1 a_i a vdd vdd pmos l=32n W=64.00n
+m2 a_i a 0 0 nmos l=32n W=64.00n
+
+* --- D0 Stage: Static CMOS NOR (Restoring Stage) ---
+m_d0_p1 n1 a vdd vdd pmos l=32n W=124.30n
+m_d0_p2 d0 b n1 vdd pmos l=32n W=154.03n
+m_d0_n1 d0 a 0 0 nmos l=32n W=64.00n
+m_d0_n2 d0 b 0 0 nmos l=32n W=64.00n
+
+* --- D1 Stage: TGL Gate (Optimized) ---
+m_d1_p d1 a_i b vdd pmos l=32n W=101.01n
+m_d1_n1 d1 a b 0 nmos l=32n W=90.18n
+m_d1_n2 d1 a 0 0 nmos l=32n W=64.00n
+
+* --- D2 Stage: DVL Gate (Optimized) ---
+m_d2_p d2 b a_i vdd pmos l=32n W=64.00n
+m_d2_n1 d2 b a 0 nmos l=32n W=114.26n
+m_d2_n2 d2 a_i 0 0 nmos l=32n W=64.00n
+
+* --- D3 Stage: TGL Gate (Optimized) ---
+m_d3_p d3 a b vdd pmos l=32n W=148.08n
+m_d3_n1 d3 a_i b 0 nmos l=32n W=71.65n
+m_d3_n2 d3 a_i 0 0 nmos l=32n W=67.44n
+
+* Output Capacitance per paper specs
+c0 d0 0 0.2f
+c1 d1 0 0.2f
+c2 d2 0 0.2f
+c3 d3 0 0.2f
+
+.tran 64n
+.meas tran pwr_avg AVG I(v_pwr)*V(vdd)
+.meas tran del_max trig V(a) val=0.5 rise=1 targ V(d3) val=0.5 rise=1
+.end

@@ -1,0 +1,17 @@
+LTspice 26.0.1 for Windows
+Circuit: C:\VLSI\GEOMETRIC_OPTIMIZED_FINAL.net
+Start Time: Wed Mar 11 16:37:44 2026
+solver = Normal
+Maximum thread count: 8
+tnom = 27
+temp = 27
+method = trap
+Direct Newton iteration succeeded in finding operating point.
+Total elapsed time: 0.217 seconds.
+
+Files loaded:
+C:\VLSI\GEOMETRIC_OPTIMIZED_FINAL.net
+C:\VLSI\32nm_LP.pm
+
+pwr_avg: AVG(I(v_pwr)*V(vdd))=-5.72020652576e-07 FROM 0 TO 6.4e-08
+del_max=3.10474895348e-09 FROM 4.9999998009e-10 TO 3.60474893357e-09

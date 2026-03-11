@@ -1,4 +1,4 @@
-# ⚡ Low-Power Mixed-Logic Line Decoders — 2-to-4 HP & 4-to-16 HP
+#  Low-Power Mixed-Logic Line Decoders — 2-to-4 HP & 4-to-16 HP
 ### Design, Simulation & Verification in LTspice | 32nm PTM LP Technology
 
 > **Author:** Devanik Debnath  

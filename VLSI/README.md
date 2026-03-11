@@ -489,14 +489,15 @@ Over 10 eliminated transistors, plus their associated drain/source diffusion cap
 |---------|----------|----------|-----------|----------------|
 | 2-4 Conventional | Static CMOS (20T) | 1.0 V | 862 nW | Mid-sem benchmark |
 | 2-4HP (faulty sim) | TGL/DVL/CMOS (15T) | 1.0 V | 224.9 nW | `final_sim.log` — **invalid** (floating node `a_inv`) |
-| 2-4HP GA-Verified | TGL/DVL/CMOS (15T) | 1.0 V | **572.0 nW** | `GEOMETRIC_OPTIMIZED_FINAL.log` — verified ✅ |
+| 2-4HP Baseline | TGL/DVL/CMOS (15T) | 1.0 V | **954.5 nW** | `final_sim_1.log` — valid ✅ |
+| 2-4HP GA-Optimised | TGL/DVL/CMOS (15T) | 1.0 V | **572.0 nW** | `GEOMETRIC_OPTIMIZED_FINAL.log` — verified ✅ |
 | 4-16 Conventional | Static CMOS (104T) | 1.0 V | 2.572 µW | Mid-sem benchmark |
 | 4-16HP Pre-GA | Predecoded (94T) | 1.0 V | 3.874 µW | `final_sim_2.log` — default widths |
 | 4-16HP GA-Optimised | Predecoded (94T) | 1.0 V | **2.070 µW** | `4_16_GEOMETRIC_OPTIMIZED_FINAL.log` — verified ✅ |
 
-> **On the 2-to-4 comparison:** The initial simulation `final_sim.log` reported 224.9 nW but carried a `WARNING: Node a_inv is floating`. A floating node disconnects the inverter from the circuit, meaning that portion of the logic was not switching and therefore not consuming its proper share of dynamic power. The result is artificially low and physically meaningless. The GA-produced `GEOMETRIC_OPTIMIZED_FINAL.net` corrects all connectivity issues; its verified power of 572.0 nW represents the true operating power of the correctly-wired 15T mixed-logic 2-4HP decoder — which is 33.6% lower than the 862 nW conventional CMOS reference.
+> **On the 2-to-4 baseline:** `final_sim_1.log` is the corrected simulation with no floating nodes — 954.5 nW is the true default-width mixed-logic power. The GA then reduces this by 40.1% to 572.0 nW, which is also 33.6% below the 862 nW conventional reference.
 
-> **On the 4-to-16 baseline:** `final_sim_2.log` (3.874 µW) represents the mixed-logic 4-16HP with default conservative transistor widths prior to GA optimization. The GA reduces this by 46.6% to 2.070 µW.
+> **On the 4-to-16 baseline:** `final_sim_2.log` (3.874 µW) is the pre-GA mixed-logic baseline. The GA reduces this by 46.6% to 2.070 µW.
 
 ---
 
@@ -574,7 +575,23 @@ del_max=3.10961405425e-09 FROM 4.9999998009e-10 TO 3.60961403434e-09
 
 The `WARNING: Node a_inv is floating` indicates the inverter output node ($\bar{A}$) was disconnected from its downstream gates. A floating node does not switch — it neither charges nor discharges load capacitances — so its contribution to $P_{dynamic}$ is absent. The reported 224.9 nW is **artificially low and physically invalid**. This run is retained in the repository as a record of the debugging process, not as a result.
 
-**Run 2 — `GEOMETRIC_OPTIMIZED_FINAL.log` (GA-Optimised, Verified):**
+**Run 2 — `final_sim_1.log` (Mixed-Logic Baseline, **valid**):**
+
+```
+LTspice 26.0.1 for Windows
+Circuit: C:\VLSI\final_sim_1.net
+Start Time: Wed Mar 11 17:00:52 2026
+Total elapsed time: 0.225 seconds.
+
+pwr_avg: AVG(I(v_pwr)*V(vdd))=-9.54457806403e-07 FROM 0 TO 6.4e-08
+del_max=3.10914524175e-09 FROM 4.9999998009e-10 TO 3.60914522184e-09
+```
+
+No warnings. Newton iteration converged cleanly. This is the corrected 15T mixed-logic 2-4HP with default widths — the floating-node issue from `final_sim.log` resolved.
+
+$$P_{avg,\,\text{baseline}} = 954.5\,\text{nW} \qquad t_{p,\,\text{baseline}} = 3.109\,\text{ns}$$
+
+**Run 3 — `GEOMETRIC_OPTIMIZED_FINAL.log` (GA-Optimised, **verified**):**
 
 ```
 LTspice 26.0.1 for Windows
@@ -601,15 +618,17 @@ $$\text{PDP}_{2\text{-}4} = 572.0 \times 10^{-9} \times 3.105 \times 10^{-9} = 1
 
 ### 11.3 Performance Summary
 
-| Parameter | Conventional CMOS (20T) | 2-4HP Faulty (invalid) | 2-4HP GA-Verified (15T) |
-|-----------|:-----------------------:|:----------------------:|:-----------------------:|
-| Transistor Count | 20 | 15 | **15** |
-| Average Power | 862 nW | 224.9 nW ❌ (floating node) | **572.0 nW** ✅ |
-| Power vs Conventional | — | — | **−33.6%** |
-| Max Delay | 49 ps *(ideal step)* | 3.110 ns | **3.105 ns** *(1 ns ramp)* |
-| Logic Swing | Full-swing | — | Full-swing (0–1 V) |
-| LTspice Verified | — | Faulty | ✅ (no warnings) |
-| Simulation Time | — | 0.196 s | **0.217 s** |
+| Parameter | Conventional CMOS (20T) | 2-4HP Faulty ❌ | 2-4HP Baseline ✅ | 2-4HP GA-Optimised ✅ |
+|-----------|:-----------------------:|:--------------:|:----------------:|:--------------------:|
+| **Source** | Benchmark | `final_sim.log` | `final_sim_1.log` | `GEOMETRIC_OPTIMIZED_FINAL.log` |
+| **Transistor Count** | 20 | 15 | 15 | **15** |
+| **Average Power** | 862 nW | 224.9 nW *(floating node)* | **954.5 nW** | **572.0 nW** |
+| **Power vs Conventional** | — | *(invalid)* | +10.7% | **−33.6%** |
+| **Power vs Mixed-Logic Baseline** | — | — | — | **−40.1%** |
+| **Max Delay** | 49 ps *(ideal)* | 3.110 ns *(invalid)* | **3.109 ns** | **3.105 ns** |
+| **Logic Swing** | Full-swing | — | Full-swing | Full-swing |
+| **LTspice Warning** | — | `a_inv floating` ❌ | **None** ✅ | **None** ✅ |
+| **Simulation Time** | — | 0.196 s | **0.225 s** | 0.217 s |
 
 ### 11.4 Verification
 
@@ -1269,19 +1288,19 @@ All numbers below are extracted directly from LTspice `.log` files or from the p
 
 ### 17.1 2-to-4 Line Decoder — All Tiers
 
-| Parameter | Conventional CMOS (20T) | Mixed-Logic Pre-GA *(faulty)* | Mixed-Logic GA-Verified (15T) |
-|-----------|:-----------------------:|:-----------------------------:|:-----------------------------:|
-| **Source** | Mid-sem benchmark | `final_sim.log` ❌ | `GEOMETRIC_OPTIMIZED_FINAL.log` ✅ |
-| **Transistor Count** | 20 | 15 | **15** |
-| **nMOS / pMOS** | 10 / 10 | 9 / 6 | 9 / 6 |
-| **Area Reduction vs Conv.** | — | **−25%** | **−25%** |
-| **Average Power** | 862 nW | 224.9 nW *(invalid — floating node)* | **572.0 nW** |
-| **Power vs Conventional** | — | — *(invalid)* | **−33.6%** |
-| **Max Propagation Delay** | 49 ps *(ideal step)* | 3.110 ns *(1 ns ramp, invalid)* | **3.105 ns** *(1 ns ramp)* |
-| **PDP** | ~42.2 aJ | — *(invalid)* | 1,776 aJ |
-| **Logic Swing** | Full-swing | — | Full-swing (0–1 V) |
-| **LTspice Warning** | — | `Node a_inv is floating` ❌ | None ✅ |
-| **Simulation Time** | — | 0.196 s | **0.217 s** |
+| Parameter | Conventional CMOS (20T) | 2-4HP Faulty ❌ | 2-4HP Baseline ✅ | 2-4HP GA-Optimised ✅ |
+|-----------|:-----------------------:|:--------------:|:----------------:|:--------------------:|
+| **Source** | Benchmark | `final_sim.log` | `final_sim_1.log` | `GEOMETRIC_OPTIMIZED_FINAL.log` |
+| **Transistor Count** | 20 | 15 | 15 | **15** |
+| **nMOS / pMOS** | 10 / 10 | 9 / 6 | 9 / 6 | 9 / 6 |
+| **Area Reduction vs Conv.** | — | **−25%** | **−25%** | **−25%** |
+| **Average Power** | 862 nW | 224.9 nW *(invalid)* | **954.5 nW** | **572.0 nW** |
+| **Power vs Conventional** | — | *(invalid)* | +10.7% | **−33.6%** |
+| **Power vs Mixed-Logic Baseline** | — | — | — | **−40.1%** |
+| **Max Propagation Delay** | 49 ps *(ideal step)* | 3.110 ns *(invalid)* | **3.109 ns** *(1 ns ramp)* | **3.105 ns** *(1 ns ramp)* |
+| **Logic Swing** | Full-swing | — | Full-swing (0–1 V) | Full-swing (0–1 V) |
+| **LTspice Warning** | — | `a_inv floating` ❌ | **None** ✅ | **None** ✅ |
+| **Simulation Time** | — | 0.196 s | **0.225 s** | 0.217 s |
 
 ### 17.2 4-to-16 Line Decoder — All Tiers
 
@@ -1309,7 +1328,8 @@ All numbers below are extracted directly from LTspice `.log` files or from the p
 |------|--------|---------|----------|-------|-----|--------|
 | — | Conventional CMOS | 2-to-4 | 862 nW | 49 ps | 42.2 aJ | Benchmark |
 | — | Conventional CMOS | 4-to-16 | 2.572 µW | 88.0 ps | 226.3 aJ | Benchmark |
-| — | Mixed-Logic Pre-GA | 4-to-16 | 3.874 µW | — | — | `final_sim_2.log` |
+| — | Mixed-Logic Baseline | 2-to-4 | 954.5 nW | 3.109 ns | — | `final_sim_1.log` ✅ |
+| — | Mixed-Logic Pre-GA | 4-to-16 | 3.874 µW | — | — | `final_sim_2.log` ✅ |
 | ✅ | **GA-Optimised** | **2-to-4** | **572.0 nW** | 3.105 ns | 1,776 aJ | `GEOMETRIC_OPTIMIZED_FINAL.log` |
 | ✅ | **GA-Optimised** | **4-to-16** | **2.070 µW** | **40.22 ps** | **83.26 aJ** | `4_16_GEOMETRIC_OPTIMIZED_FINAL.log` |
 

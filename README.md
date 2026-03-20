@@ -1,7 +1,7 @@
 # Power Gating Decoder ML Optimizer
 
 ### A Machine Learning-Driven Design Space Exploration Tool for Low-Power VLSI Decoder Optimization
-
+ 
 **Author:** Devanik Debnath  
 **GitHub:** [@Devanik21](https://github.com/Devanik21)  
 **LinkedIn:** [linkedin.com/in/devanik](https://www.linkedin.com/in/devanik/)  

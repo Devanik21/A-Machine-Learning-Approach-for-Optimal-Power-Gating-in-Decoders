@@ -1058,7 +1058,9 @@ This **warm-start initialization** (as opposed to random initialization from $\m
 
 After evaluating all chromosomes in generation $g$, they are sorted by PDP in ascending order. The top $\lfloor 0.3 \cdot P \rfloor$ chromosomes (the elite) are preserved verbatim into the next generation:
 
-$$\mathcal{E}^{(g)} = \left\{ \mathbf{W}^{(g)}_{\sigma(1)},\; \mathbf{W}^{(g)}_{\sigma(2)},\; \ldots,\; \mathbf{W}^{(g)}_{\sigma(\lfloor 0.3P \rfloor)} \right\}$$
+$$
+\mathcal{E}^{(g)} = \{ \mathbf{W}^{(g)}_{\sigma(1)}, \mathbf{W}^{(g)}_{\sigma(2)}, \ldots, \mathbf{W}^{(g)}_{\sigma(\lfloor 0.3P \rfloor)} \}
+$$
 
 where $\sigma$ is the permutation that sorts chromosomes by fitness. This guarantees **monotone non-increasing best fitness** across generations — the global minimum found at generation $g$ can never be lost at generation $g+1$.
 

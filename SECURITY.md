@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-Currently, the master branch is the only supported version.
+Currently, the main branch is the only supported version.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| master  | :white_check_mark: |
+| main    | :white_check_mark: |
 | others  | :x:                |
 
 ## Reporting a Vulnerability

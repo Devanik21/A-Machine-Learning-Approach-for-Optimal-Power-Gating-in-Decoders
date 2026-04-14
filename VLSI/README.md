@@ -917,7 +917,9 @@ $$\text{PDP}(\mathbf{W}) = P_{avg}(\mathbf{W}) \times t_{p,max}(\mathbf{W})$$
 
 and $\mathcal{F}$ is the feasible region:
 
-$$\mathcal{F} = \left\{ \mathbf{W} \in \mathbb{R}^{15} \;\middle|\; W_{min} \leq W_i \leq W_{max}, \;\; \forall i = 1,\ldots,15 \right\}$$
+$$
+\mathcal{F} = \{ \mathbf{W} \in \mathbb{R}^{15} \mid W_{\min} \leq W_i \leq W_{\max}, \ \forall i = 1,\ldots,15 \}
+$$
 
 with $W_{min} = 64\,\text{nm}$ and $W_{max} = 512\,\text{nm}$.
 

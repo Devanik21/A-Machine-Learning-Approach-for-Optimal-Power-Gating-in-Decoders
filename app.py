@@ -1159,11 +1159,10 @@ with tab7:
     
     The ML-optimized power gating strategy achieves significant power reduction while maintaining acceptable performance trade-offs, making it suitable for modern low-power applications.
     
-    ### 👥 Team & Acknowledgments
+    ### 👥 Acknowledgments
     
-    **Project Guide:** [Your Professor's Name]  
-    **Student:** [Your Name]  
-    **Institution:** [Your College Name]  
+    **Student:** [Devanik]  
+    **Institution:** [National Institute Of Technology Agartala]  
     **Course:** B.Tech Final Year Project
     
     ---

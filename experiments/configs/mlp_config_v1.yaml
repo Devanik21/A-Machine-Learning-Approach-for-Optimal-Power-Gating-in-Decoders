@@ -1,0 +1,11 @@
+model_type: "MLPRegressor"
+parameters:
+  hidden_layer_sizes: [64, 32, 16]
+  activation: "relu"
+  solver: "adam"
+  max_iter: 500
+  early_stopping: true
+training:
+  cv_folds: 5
+  test_size: 0.2
+  random_state: 42

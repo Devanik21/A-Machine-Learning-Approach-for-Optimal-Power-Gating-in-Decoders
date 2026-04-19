@@ -1,0 +1,6 @@
+{
+    "decoder_size": {"type": "int", "low": 2, "high": 6},
+    "tech_node": {"type": "categorical", "choices": [180, 130, 90, 65, 45, 32, 22]},
+    "supply_voltage": {"type": "float", "low": 0.6, "high": 1.8},
+    "threshold_voltage": {"type": "float", "low": 0.2, "high": 0.5}
+}

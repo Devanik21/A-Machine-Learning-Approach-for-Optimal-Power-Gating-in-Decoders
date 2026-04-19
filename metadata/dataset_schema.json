@@ -1,0 +1,10 @@
+{
+    "columns": [
+        {"name": "decoder_size", "type": "int"},
+        {"name": "tech_node", "type": "int"},
+        {"name": "supply_voltage", "type": "float"},
+        {"name": "power", "type": "float", "target": true},
+        {"name": "delay", "type": "float", "target": true},
+        {"name": "area", "type": "float", "target": true}
+    ]
+}
